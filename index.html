@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="pt-BR">
 <head>
@@ -15,7 +16,7 @@
 
   <main id="app">
 
-    <!-- Capa do álbum (só aparece quando há música) -->
+    <!-- Capa do álbum -->
     <section id="coverWrap" class="cover-wrap">
       <div class="cover"><img id="cover" alt=""></div>
     </section>
@@ -25,15 +26,18 @@
       <div id="clock" class="clock" title="Toque para mudar o tema">
         <span id="time">--:--</span>
       </div>
+
       <p id="date" class="date"></p>
 
-      <!-- Mensagens e botão de conectar (visão sem música) -->
+      <!-- Visão sem música -->
       <div class="idle-box">
         <p id="status" class="status"></p>
-        <button id="btnConnect" class="pill" type="button">Conectar ao Spotify</button>
+        <button id="btnConnect" class="pill" type="button">
+          Conectar ao Spotify
+        </button>
       </div>
 
-      <!-- Música (visão com música) -->
+      <!-- Música -->
       <div class="track">
         <p id="title" class="title"></p>
         <p id="artist" class="artist"></p>
@@ -48,29 +52,127 @@
 
       <div class="controls">
         <button id="btnPrev" class="ctl" type="button" aria-label="Música anterior">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h2.4v14H6zM20 5v14L9.5 12z" fill="currentColor"/></svg>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M6 5h2.4v14H6zM20 5v14L9.5 12z" fill="currentColor"/>
+          </svg>
         </button>
+
         <button id="btnPlay" class="ctl play" type="button" aria-label="Tocar ou pausar">
-          <svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
-          <svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h3.6v14H7zM13.4 5H17v14h-3.6z" fill="currentColor"/></svg>
+          <svg class="i-play" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M8 5v14l11-7z" fill="currentColor"/>
+          </svg>
+          <svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M7 5h3.6v14H7zM13.4 5H17v14h-3.6z" fill="currentColor"/>
+          </svg>
         </button>
+
         <button id="btnNext" class="ctl" type="button" aria-label="Próxima música">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.6 5H18v14h-2.4zM4 5v14l10.5-7z" fill="currentColor"/></svg>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M15.6 5H18v14h-2.4zM4 5v14l10.5-7z" fill="currentColor"/>
+          </svg>
         </button>
       </div>
 
     </section>
   </main>
 
-  <!-- Ferramentas discretas no canto -->
+  <!-- Ferramentas -->
   <div class="tools">
+
     <button id="btnFull" type="button" aria-label="Tela cheia">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"
+          fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
     </button>
+
     <button id="btnLogout" type="button" aria-label="Desconectar do Spotify">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v8M6.8 6.6a7.5 7.5 0 1 0 10.4 0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 3v8M6.8 6.6a7.5 7.5 0 1 0 10.4 0"
+          fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round"/>
+      </svg>
     </button>
+
+    <!-- Botão do alarme -->
+    <button id="btnAlarm" type="button"
+      aria-label="Abrir alarmes"
+      onclick="document.getElementById('alarmPanel').hidden = !document.getElementById('alarmPanel').hidden">
+      ⏰
+    </button>
+
   </div>
+
+  <!-- Painel de alarmes -->
+  <section id="alarmPanel" class="alarm-panel" hidden>
+
+    <header class="alarm-header">
+      <div>
+        <h2>Good morning ☀️</h2>
+        <p>Seus alarmes do Cozy Display</p>
+      </div>
+
+      <button type="button"
+        aria-label="Fechar alarmes"
+        onclick="document.getElementById('alarmPanel').hidden = true">
+        ✕
+      </button>
+    </header>
+
+    <!-- Criar alarme -->
+    <form id="alarmForm">
+
+      <label for="alarmTime">Horário</label>
+      <input id="alarmTime" name="time" type="time" required>
+
+      <p>Repetir</p>
+
+      <div class="alarm-days">
+        <label><input type="checkbox" name="days" value="0"> Dom</label>
+        <label><input type="checkbox" name="days" value="1"> Seg</label>
+        <label><input type="checkbox" name="days" value="2"> Ter</label>
+        <label><input type="checkbox" name="days" value="3"> Qua</label>
+        <label><input type="checkbox" name="days" value="4"> Qui</label>
+        <label><input type="checkbox" name="days" value="5"> Sex</label>
+        <label><input type="checkbox" name="days" value="6"> Sáb</label>
+      </div>
+
+      <label for="alarmSound">Som do alarme</label>
+      <select id="alarmSound" name="sound">
+        <option value="bell">Classic Bell 🔔</option>
+        <option value="piano">Soft Piano 🎹</option>
+        <option value="birds">Morning Birds 🐦</option>
+        <option value="rain">Rainy Morning 🌧️</option>
+      </select>
+
+      <label for="alarmVolume">Volume</label>
+      <input id="alarmVolume" type="range" min="0" max="100" value="70">
+
+      <label>
+        <input id="gradualVolume" type="checkbox">
+        Aumentar o volume gradualmente
+      </label>
+
+      <label for="snoozeTime">Duração da soneca</label>
+      <select id="snoozeTime">
+        <option value="5">5 minutos</option>
+        <option value="10" selected>10 minutos</option>
+        <option value="15">15 minutos</option>
+      </select>
+
+      <button type="submit" id="addAlarm">
+        + Adicionar alarme
+      </button>
+
+    </form>
+
+    <div class="alarm-list">
+      <h3>Seus alarmes</h3>
+      <div id="alarmList"></div>
+    </div>
+
+  </section>
 
   <div id="toast" class="toast" role="status"></div>
 
@@ -78,7 +180,7 @@
     <p>Gire o aparelho para a horizontal 🤎</p>
   </div>
 
-  <!-- Aparece só enquanto o Client ID não foi configurado -->
+  <!-- Configuração Spotify -->
   <div id="setup" class="overlay setup-card">
     <div>
       <h1>Falta um passo: o Client ID</h1>
@@ -90,5 +192,6 @@
 
   <script src="config.js"></script>
   <script src="script.js"></script>
+
 </body>
 </html>
