@@ -528,3 +528,303 @@
 
   init();
 })();
+<script>
+(function(){
+
+var alarms = [];
+var audio = null;
+var activeAlarm = null;
+var alarmInterval = null;
+var fired = {};
+
+function loadAlarms(){
+  try {
+    alarms = JSON.parse(
+      localStorage.getItem('cozy_alarms') || '[]'
+    );
+  } catch(e) {
+    alarms = [];
+  }
+
+  renderAlarms();
+}
+
+function saveAlarms(){
+  localStorage.setItem(
+    'cozy_alarms',
+    JSON.stringify(alarms)
+  );
+
+  renderAlarms();
+}
+
+window.addCozyAlarm = function(){
+
+  var time = document.getElementById('alarmTime').value;
+
+  if(!time){
+    alert('Escolha um horário!');
+    return;
+  }
+
+  var days = [];
+
+  document.querySelectorAll(
+    '.alarm-days input:checked'
+  ).forEach(function(el){
+    days.push(Number(el.value));
+  });
+
+  if(days.length === 0){
+    alert('Escolha pelo menos um dia!');
+    return;
+  }
+
+  alarms.push({
+    id: Date.now(),
+    time: time,
+    days: days,
+    sound: document.getElementById('alarmSound').value,
+    volume: Number(document.getElementById('alarmVolume').value),
+    fade: document.getElementById('alarmFade').checked,
+    snooze: Number(document.getElementById('alarmSnooze').value),
+    enabled: true
+  });
+
+  saveAlarms();
+};
+
+function renderAlarms(){
+
+  var list = document.getElementById('alarmList');
+
+  list.innerHTML = '';
+
+  document.getElementById('alarmCount').textContent =
+    alarms.length + ' alarmes';
+
+  if(alarms.length === 0){
+    list.innerHTML =
+      '<div class="small">Nenhum alarme configurado.</div>';
+    return;
+  }
+
+  alarms.forEach(function(alarm){
+
+    var item = document.createElement('div');
+    item.className = 'alarm-item';
+
+    var days = alarm.days.map(function(d){
+      return ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'][d];
+    }).join(', ');
+
+    item.innerHTML =
+      '<div class="row">' +
+        '<div>' +
+          '<div class="alarm-time">' + alarm.time + '</div>' +
+          '<div class="small">' + days + '</div>' +
+        '</div>' +
+        '<div class="alarm-actions">' +
+          '<button data-action="toggle">' +
+            (alarm.enabled ? 'Ligado' : 'Desligado') +
+          '</button>' +
+          '<button data-action="delete">Excluir</button>' +
+        '</div>' +
+      '</div>';
+
+    item.querySelector('[data-action="toggle"]').onclick =
+      function(){
+        alarm.enabled = !alarm.enabled;
+        saveAlarms();
+      };
+
+    item.querySelector('[data-action="delete"]').onclick =
+      function(){
+        alarms = alarms.filter(function(a){
+          return a.id !== alarm.id;
+        });
+        saveAlarms();
+      };
+
+    list.appendChild(item);
+  });
+}
+
+function getAudio(){
+
+  var Audio = window.AudioContext || window.webkitAudioContext;
+
+  if(!Audio) return null;
+
+  if(!audio) audio = new Audio();
+
+  if(audio.state === 'suspended'){
+    audio.resume();
+  }
+
+  return audio;
+}
+
+function playTone(frequency, duration, volume, type, delay){
+
+  if(!audio) return;
+
+  var oscillator = audio.createOscillator();
+  var gain = audio.createGain();
+
+  oscillator.type = type || 'sine';
+  oscillator.frequency.value = frequency;
+
+  var now = audio.currentTime + (delay || 0);
+
+  gain.gain.setValueAtTime(0, now);
+  gain.gain.linearRampToValueAtTime(volume, now + 0.12);
+  gain.gain.exponentialRampToValueAtTime(
+    0.001,
+    now + duration
+  );
+
+  oscillator.connect(gain);
+  gain.connect(audio.destination);
+
+  oscillator.start(now);
+  oscillator.stop(now + duration + 0.1);
+}
+
+function playAlarmSound(alarm, gradual){
+
+  getAudio();
+
+  if(!audio) return;
+
+  var volume = alarm.volume / 100;
+  var fade = gradual && alarm.fade ? 0.15 : 1;
+
+  if(alarm.sound === 'bell'){
+    playTone(880,1,volume * fade,'sine',0);
+    playTone(1175,1,volume * fade,'sine',0.3);
+    playTone(880,1,volume * fade,'sine',1.4);
+  }
+
+  if(alarm.sound === 'piano'){
+    playTone(523,1.4,volume * fade,'sine',0);
+    playTone(659,1.4,volume * fade,'sine',0.4);
+    playTone(784,1.4,volume * fade,'sine',0.8);
+  }
+
+  if(alarm.sound === 'birds'){
+    playTone(1400,.25,volume * fade,'sine',0);
+    playTone(1800,.3,volume * fade,'sine',.35);
+    playTone(1550,.3,volume * fade,'sine',.8);
+    playTone(1900,.25,volume * fade,'sine',1.2);
+  }
+
+  if(alarm.sound === 'rain'){
+    playTone(180,.8,volume * fade,'triangle',0);
+    playTone(220,.8,volume * fade,'triangle',.5);
+    playTone(160,.8,volume * fade,'triangle',1);
+  }
+}
+
+window.previewAlarm = function(){
+
+  var alarm = {
+    sound: document.getElementById('alarmSound').value,
+    volume: Number(document.getElementById('alarmVolume').value),
+    fade: document.getElementById('alarmFade').checked
+  };
+
+  playAlarmSound(alarm,false);
+};
+
+document.getElementById('alarmVolume').oninput = function(){
+  document.getElementById('alarmVolumeText').textContent =
+    this.value + '%';
+};
+
+function ringAlarm(alarm){
+
+  if(activeAlarm) return;
+
+  activeAlarm = alarm;
+
+  document.getElementById('ringingTime').textContent =
+    alarm.time;
+
+  document.getElementById('alarmRinging').className =
+    'alarm-overlay visible';
+
+  playAlarmSound(alarm,true);
+
+  if(alarmInterval) clearInterval(alarmInterval);
+
+  alarmInterval = setInterval(function(){
+    if(activeAlarm){
+      playAlarmSound(activeAlarm,true);
+    }
+  },3000);
+}
+
+window.stopCozyAlarm = function(){
+
+  activeAlarm = null;
+
+  if(alarmInterval){
+    clearInterval(alarmInterval);
+    alarmInterval = null;
+  }
+
+  document.getElementById('alarmRinging').className =
+    'alarm-overlay';
+};
+
+window.snoozeCozyAlarm = function(){
+
+  if(!activeAlarm) return;
+
+  var alarm = activeAlarm;
+  var minutes = alarm.snooze;
+
+  stopCozyAlarm();
+
+  setTimeout(function(){
+    ringAlarm(alarm);
+  },minutes * 60 * 1000);
+};
+
+function checkAlarms(){
+
+  var now = new Date();
+
+  var hour = String(now.getHours()).padStart(2,'0');
+  var minute = String(now.getMinutes()).padStart(2,'0');
+
+  var currentTime = hour + ':' + minute;
+  var day = now.getDay();
+
+  alarms.forEach(function(alarm){
+
+    var key = now.toDateString() + '-' + alarm.id;
+
+    if(
+      alarm.enabled &&
+      alarm.time === currentTime &&
+      alarm.days.indexOf(day) !== -1 &&
+      !fired[key]
+    ){
+      fired[key] = true;
+      ringAlarm(alarm);
+    }
+  });
+}
+
+document.addEventListener('visibilitychange',function(){
+  if(!document.hidden) checkAlarms();
+});
+
+loadAlarms();
+
+setInterval(checkAlarms,1000);
+
+})();
+</script>
